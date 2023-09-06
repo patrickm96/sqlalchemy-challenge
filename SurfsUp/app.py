@@ -80,7 +80,7 @@ def stations():
     stations = []
     for row in all_stations:
         station_dict = {}
-        station_dict["station"] = row['station']
+        station_dict["Station"] = row['station']
         stations.append(station_dict)
     
     return jsonify(stations)
