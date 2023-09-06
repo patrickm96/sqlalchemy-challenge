@@ -3,7 +3,8 @@ import numpy as np
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, func, desc, text, and_
+from datetime import datetime, timedelta
 
 from flask import Flask, jsonify
 
@@ -48,8 +49,7 @@ def welcome():
 @app.route("/api/v1.0/precipitation")
 def precipitations():
     session = Session(engine)
-    from sqlalchemy import desc
-    from datetime import datetime, timedelta
+
     most_recent_date = session.query(func.max(Measurement.date)).scalar()
     most_recent_date = datetime.strptime(most_recent_date, '%Y-%m-%d')
     one_year_prior = most_recent_date - timedelta(days=366)
@@ -69,7 +69,6 @@ def precipitations():
 
 @app.route("/api/v1.0/stations")
 def stations():
-    from sqlalchemy import create_engine, text
     conn = engine.connect()
     session = Session(engine)
     all_stations_query = text("SELECT DISTINCT station FROM station")
@@ -87,8 +86,6 @@ def stations():
 
 @app.route("/api/v1.0/tobs")
 def temps():
-    from sqlalchemy import desc
-    from datetime import datetime, timedelta
     most_active_station_most_recent_date = session.query(func.max(Measurement.date)).filter(Measurement.station == 'USC00519281').scalar()
     most_active_station_most_recent_date = datetime.strptime(most_active_station_most_recent_date, '%Y-%m-%d')
     most_active_station_one_year_prior = most_active_station_most_recent_date - timedelta(days=366)
@@ -108,9 +105,6 @@ def temps():
 
 @app.route("/api/v1.0/<start>")
 def start_date_filter(start):
-    from datetime import datetime, timedelta
-    from sqlalchemy import create_engine, text
-
     start_date = datetime.strptime(start, '%Y-%m-%d')
     temp_data = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs))\
     .filter(Measurement.date > start_date - timedelta(days=1)).all()
@@ -139,9 +133,6 @@ def start_date_filter(start):
 
 @app.route("/api/v1.0/<start>/<end>")
 def start_end_date_filter(start, end):
-    from datetime import datetime, timedelta
-    from sqlalchemy import create_engine, text, and_
-
     start_date = datetime.strptime(start, '%Y-%m-%d')
     end_date = datetime.strptime(end, '%Y-%m-%d')
     start_end_temp_data = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs))\
